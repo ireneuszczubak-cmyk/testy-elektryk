@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test: Zabezpieczenia nadprądowe</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#F4F1EA;color:#14213D;line-height:1.45}
+.wrap{max-width:640px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:24px;margin:8px 0 4px}
+.sub{color:#4A5468;font-size:15px;margin:0 0 20px}
+.card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(20,33,61,.12);border-top:6px solid #F2A541}
+label.f{display:block;font-weight:600;margin:0 0 6px}
+input[type=text]{width:100%;font-size:17px;padding:12px;border:2px solid #D9D3C4;border-radius:10px}
+button{font:inherit;cursor:pointer}
+.btn{display:block;width:100%;margin-top:16px;padding:14px;font-size:17px;font-weight:700;border:0;border-radius:12px;background:#14213D;color:#fff}
+.btn:disabled{background:#B8C0D0}
+.btn.sec{background:#fff;color:#14213D;border:2px solid #14213D}
+.prog{height:8px;background:#E3DED2;border-radius:4px;overflow:hidden;margin-bottom:8px}
+.prog div{height:100%;background:#F2A541;width:0}
+.count{font-size:14px;color:#4A5468;margin-bottom:12px}
+.q{font-size:19px;font-weight:700;margin:0 0 16px}
+.opt{display:block;width:100%;text-align:left;margin:0 0 10px;padding:14px;font-size:16px;border:2px solid #D9D3C4;border-radius:12px;background:#FBF9F4;color:#14213D}
+.opt.sel{border-color:#2B6CB0;background:#E3EAF3}
+.opt.ok{border-color:#1F6B3A;background:#E3F2E8}
+.opt.bad{border-color:#9B2C1F;background:#F8E4E1}
+.expl{margin-top:8px;padding:12px;border-left:5px solid #2B6CB0;background:#E3EAF3;border-radius:6px;font-size:15px}
+.score{font-size:44px;font-weight:800;margin:8px 0}
+.grade{font-size:20px;font-weight:700}
+.meta{color:#4A5468;font-size:14px}
+.rev{margin-top:20px}
+.rev .item{border-top:1px solid #E3DED2;padding:12px 0;font-size:15px}
+.rev .item b{display:block;margin-bottom:4px}
+.good{color:#1F6B3A;font-weight:700}.wrong{color:#9B2C1F;font-weight:700}
+.hidden{display:none}
+.warn{position:fixed;left:12px;right:12px;top:12px;z-index:9;background:#9B2C1F;color:#fff;padding:14px 16px;border-radius:12px;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.exits{margin:12px 0 4px;padding:12px;border-radius:10px;font-weight:700}
+.exits.z{background:#E3F2E8;color:#1F6B3A}.exits.nz{background:#F8E4E1;color:#9B2C1F}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Zabezpieczenia nadprądowe</h1>
+<p class="sub">Test jednokrotnego wyboru · 20 pytań · bez obliczeń</p>
+
+<div id="start" class="card">
+<div id="qrok" class="hidden"><p class="meta">Zalogowano kodem QR jako:</p><p class="grade" id="qrname"></p></div>
+<div id="manual">
+<p class="meta">Zeskanuj kod QR ze swojej karty albo wpisz dane ręcznie.</p>
+<label class="f" for="name">Imię i nazwisko</label>
+<input id="name" type="text" autocomplete="name" placeholder="np. Jan Kowalski">
+<label class="f" for="code" style="margin-top:12px">Kod ucznia (z karty)</label>
+<input id="code" type="text" autocapitalize="characters" autocomplete="off" placeholder="np. K7Q2M" maxlength="5">
+<p id="codeerr" class="wrong hidden" style="margin:8px 0 0">Kod nie pasuje do imienia i nazwiska.</p>
+</div>
+<p class="meta">Każde pytanie ma jedną poprawną odpowiedź. Po zaznaczeniu odpowiedzi przejdź dalej przyciskiem „Dalej”. Na końcu zobaczysz wynik — pokaż go nauczycielowi.</p>
+<p class="meta"><b>Uwaga:</b> podczas testu nie wychodź z tej strony. Każde przełączenie na inną aplikację, kartę lub ekran główny jest liczone i widoczne w wyniku.</p>
+<button id="go" class="btn" disabled>Rozpocznij test</button>
+</div>
+
+<div id="quiz" class="card hidden">
+<div class="prog"><div id="bar"></div></div>
+<div class="count" id="count"></div>
+<p class="q" id="qtext"></p>
+<div id="opts"></div>
+<button id="next" class="btn" disabled>Dalej</button>
+</div>
+
+<div id="result" class="card hidden">
+<div class="meta" id="who"></div>
+<div class="score" id="score"></div>
+<div class="grade" id="grade"></div>
+<div class="exits" id="exits"></div>
+<div class="meta" id="extra"></div>
+<button id="again" class="btn sec">Rozwiąż ponownie</button>
+<div class="rev" id="review"></div>
+</div>
+</div>
+<div id="warn" class="warn hidden"></div>
+
+<script>
+var Q=[
+["Co oznacza symbol gG na wkładce bezpiecznikowej?",["Wkładka pełnozakresowa ogólnego przeznaczenia","Wkładka niepełnozakresowa do silników","Wkładka pełnozakresowa do półprzewodników","Wkładka niepełnozakresowa ogólnego przeznaczenia"],"g – pełnozakresowa (przeciążenia i zwarcia), G – ogólne przeznaczenie (przewody)."],
+["Przed czym chroni wkładka aM?",["Tylko przed zwarciem","Tylko przed przeciążeniem","Przed przeciążeniem i zwarciem","Przed porażeniem prądem"],"a – niepełnozakresowa: wyłącza tylko prądy zwarciowe."],
+["Co trzeba dodatkowo zastosować w obwodzie silnika zabezpieczonym wkładkami aM?",["Przekaźnik termiczny","Ogranicznik przepięć","Przekaźnik czasowy","Wkładkę gG o tym samym prądzie"],"aM nie chroni przed przeciążeniem, dlatego potrzebny jest przekaźnik termiczny lub wyłącznik silnikowy."],
+["Jaki prąd znamionowy ma wkładka D/D0 z czerwonym wskaźnikiem?",["10 A","6 A","16 A","25 A"],"Czerwony – 10 A. Zielony 6 A, szary 16 A, żółty 25 A."],
+["Jaki kolor wskaźnika ma wkładka 25 A?",["Żółty","Niebieski","Szary","Czerwony"],"Żółty – 25 A. Niebieski to 20 A."],
+["Do czego służy wstawka kalibrowa w gnieździe bezpiecznika D?",["Uniemożliwia założenie wkładki o większym prądzie znamionowym","Gasi łuk przy przepaleniu wkładki","Sygnalizuje przepalenie wkładki","Zwiększa zdolność wyłączania bezpiecznika"],"Otwór wstawki pasuje tylko do wkładki o danym prądzie lub mniejszym."],
+["Do czego służy piasek kwarcowy we wkładce topikowej?",["Chłodzi i gasi łuk elektryczny","Izoluje termicznie obudowę","Zwiększa prąd znamionowy wkładki","Sygnalizuje zadziałanie wkładki"],"Piasek gasi łuk powstający po stopieniu elementu topikowego i ogranicza prąd zwarcia."],
+["Który element wyłącznika nadprądowego chroni przed przeciążeniem?",["Bimetal","Cewka wyzwalacza elektromagnetycznego","Komora gaszeniowa","Dźwignia"],"Bimetal nagrzewa się i wygina, wyłączając z opóźnieniem przy przeciążeniu."],
+["Przed czym chroni wyzwalacz elektromagnetyczny wyłącznika?",["Przed zwarciem","Przed przeciążeniem","Przed przepięciem","Przed prądem upływu"],"Cewka wciąga rdzeń przy bardzo dużym prądzie – wyłączenie w czasie poniżej 0,1 s."],
+["Jaką rolę pełni komora gaszeniowa w wyłączniku?",["Dzieli, chłodzi i gasi łuk elektryczny","Ustawia prąd zadziałania bimetalu","Utrzymuje styki w stanie zamkniętym","Wskazuje stan wyłącznika"],"Pakiet stalowych płytek dzieli łuk na krótkie odcinki i go gasi."],
+["W jakim zakresie prądu działa natychmiast wyzwalacz elektromagnetyczny wyłącznika o charakterystyce B?",["3–5 × In","5–10 × In","10–20 × In","1,13–1,45 × In"],"B: 3–5 × In, C: 5–10 × In, D: 10–20 × In."],
+["Wyłącznik o jakiej charakterystyce zastosujesz w obwodzie gniazd w mieszkaniu?",["B","D","K","Z"],"Charakterystyka B – gniazda i oświetlenie w mieszkaniach."],
+["Do czego stosuje się przede wszystkim wyłączniki o charakterystyce D?",["Do transformatorów, spawarek i dużych silników","Do oświetlenia w mieszkaniach","Do obwodów elektronicznych","Do gniazd w biurach"],"D wytrzymuje duże prądy załączania."],
+["Która charakterystyka jest najczulsza i służy do obwodów elektronicznych i sterowniczych?",["Z","B","C","D"],"Z: 2–3 × In – najczulsza."],
+["Co oznacza liczba „6000” w prostokącie na obudowie wyłącznika?",["Zdolność zwarciową 6 kA","Napięcie izolacji 6000 V","Trwałość 6000 łączeń","Moc dopuszczalną 6000 W"],"To znamionowa zdolność zwarciowa Icn = 6000 A."],
+["Co oznacza cyfra „3” w kwadracie na obudowie wyłącznika?",["Klasę ograniczania energii","Liczbę biegunów","Charakterystykę wyłącznika","Prąd znamionowy 3 A"],"Klasa ograniczania energii – 3 jest najlepsza."],
+["Na czym polega wybiórczość zabezpieczeń?",["Przy zwarciu zadziała tylko zabezpieczenie najbliższe miejsca zwarcia","Wszystkie zabezpieczenia wyłączają się jednocześnie","Zabezpieczenie wybiera, które odbiorniki wyłączyć","Zabezpieczenie wyłącza tylko przeciążenia"],"Dzięki wybiórczości reszta instalacji ma dalej zasilanie."],
+["Jak wymienia się wkładki bezpiecznikowe NH?",["Wyłącznie uchwytem do wkładek NH","Ręką w rękawicy","Szczypcami z izolowanymi rękojeściami","Wkrętakiem izolowanym"],"Tylko uchwytem izolacyjnym z osłoną przedramienia."],
+["Co należy zrobić po przepaleniu się wkładki 10 A w obwodzie oświetleniowym?",["Usunąć przyczynę i założyć nową wkładkę 10 A","Założyć wkładkę 16 A","Zmostkować gniazdo drutem","Założyć wkładkę aM 10 A"],"Nigdy nie zakładamy większej wkładki ani nie „drutujemy” bezpieczników."],
+["Czy wyłącznik nadprądowy chroni człowieka przed porażeniem przy dotknięciu przewodu fazowego?",["Nie – do tego służy wyłącznik różnicowoprądowy","Tak, zawsze","Tak, ale tylko charakterystyka B","Tak, jeśli ma klasę 3"],"Prąd przez ciało to kilkadziesiąt mA – za mało dla wyłącznika nadprądowego."]
+];
+var order=[],cur=0,ans=[],sel=-1,name="",running=false,exits=0,away=0,leftAt=0,lastOut=0,attempt=0,t0=0;
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+var $=function(id){return document.getElementById(id)};
+var SALT="ZN-2026",login="";
+function norm(n){return n.trim().replace(/\s+/g," ")}
+function code(n){n=norm(n).toLowerCase()+"|"+SALT;var h=2166136261;for(var i=0;i<n.length;i++){h^=n.charCodeAt(i);h=Math.imul(h,16777619)>>>0}
+var a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",r="";for(var j=0;j<5;j++){r+=a[h%32];h=Math.floor(h/32)}return r}
+function chk(){var n=norm($("name").value),c=$("code").value.trim().toUpperCase(),ok=n.length>=3&&c.length==5&&c==code(n);
+$("codeerr").classList.toggle("hidden",ok||c.length<5||n.length<3);$("go").disabled=!ok}
+$("name").addEventListener("input",chk);$("code").addEventListener("input",chk);
+(function(){var q=new URLSearchParams((location.hash||"").replace(/^#/,"")||location.search.slice(1)),u=q.get("u"),k=(q.get("k")||"").toUpperCase();
+if(u&&k&&k==code(u)){login="QR";$("name").value=norm(u);$("qrname").textContent=norm(u);$("qrok").classList.remove("hidden");$("manual").classList.add("hidden");$("go").disabled=false}})();
+$("go").onclick=start;$("again").onclick=function(){$("result").classList.add("hidden");$("start").classList.remove("hidden");window.scrollTo(0,0)};
+function start(){name=norm($("name").value);if(!login)login="kod ręczny";running=true;exits=0;away=0;leftAt=0;attempt++;t0=Date.now();order=shuffle(Q.map(function(q,i){return{q:i,o:shuffle([0,1,2,3])}}));cur=0;ans=[];
+$("start").classList.add("hidden");$("quiz").classList.remove("hidden");show()}
+function show(){var it=order[cur],q=Q[it.q];sel=-1;$("next").disabled=true;
+$("next").textContent=cur==order.length-1?"Zakończ test":"Dalej";
+$("count").textContent="Pytanie "+(cur+1)+" z "+order.length;$("bar").style.width=(cur/order.length*100)+"%";
+$("qtext").textContent=q[0];var box=$("opts");box.innerHTML="";
+it.o.forEach(function(oi,k){var b=document.createElement("button");b.className="opt";b.textContent=String.fromCharCode(65+k)+". "+q[1][oi];
+b.onclick=function(){sel=oi;[].forEach.call(box.children,function(c){c.classList.remove("sel")});b.classList.add("sel");$("next").disabled=false};box.appendChild(b)});window.scrollTo(0,0)}
+$("next").onclick=function(){ans.push(sel);cur++;if(cur<order.length)show();else finish()};
+function finish(){running=false;$("warn").classList.add("hidden");var ok=0,html="";order.forEach(function(it,i){var q=Q[it.q],g=ans[i]===0;if(g)ok++;
+html+='<div class="item"><b>'+(i+1)+". "+q[0]+'</b>'+(g?'<span class="good">Dobrze:</span> '+q[1][0]:'<span class="wrong">Twoja odpowiedź:</span> '+q[1][ans[i]]+'<br><span class="good">Poprawna:</span> '+q[1][0])+'<div class="expl">'+q[2]+'</div></div>'});
+var n=order.length,p=Math.round(ok/n*100),gr=p>=91?"bardzo dobry (5)":p>=75?"dobry (4)":p>=50?"dostateczny (3)":p>=30?"dopuszczający (2)":"niedostateczny (1)";
+var d=new Date();$("who").textContent=name+" · "+d.toLocaleDateString("pl-PL")+" "+d.toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"});
+$("score").textContent=ok+" / "+n+" ("+p+"%)";$("grade").textContent="Ocena: "+gr;$("review").innerHTML="<h3>Twoje odpowiedzi</h3>"+html;
+var ex=$("exits");ex.className="exits "+(exits?"nz":"z");ex.textContent=exits?"Wyjścia z testu: "+exits+" (łącznie poza testem: "+Math.round(away/1000)+" s)":"Wyjścia z testu: 0";
+var mins=Math.floor((Date.now()-t0)/60000),secs=Math.round((Date.now()-t0)/1000)%60;$("extra").textContent="Logowanie: "+login+" · podejście nr "+attempt+" · czas rozwiązywania: "+mins+" min "+secs+" s";
+$("quiz").classList.add("hidden");$("result").classList.remove("hidden");window.scrollTo(0,0)}
+function out(){if(!running||leftAt)return;var n=Date.now();if(n-lastOut<1500)return;lastOut=n;leftAt=n;exits++}
+function back(){if(!running||!leftAt)return;away+=Date.now()-leftAt;leftAt=0;var w=$("warn");w.textContent="Wykryto wyjście z testu ("+exits+"). Zostanie to pokazane w wyniku.";w.classList.remove("hidden");clearTimeout(w._t);w._t=setTimeout(function(){w.classList.add("hidden")},4000)}
+document.addEventListener("visibilitychange",function(){if(document.hidden)out();else back()});
+window.addEventListener("blur",out);window.addEventListener("focus",back);
+window.addEventListener("pagehide",out);
+window.addEventListener("beforeunload",function(e){if(running){e.preventDefault();e.returnValue=""}});
+</script>
+</body>
+</html>
