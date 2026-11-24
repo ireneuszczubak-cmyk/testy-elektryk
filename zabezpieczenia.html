@@ -45,17 +45,11 @@ button{font:inherit;cursor:pointer}
 <p class="sub">Test jednokrotnego wyboru · 20 pytań · bez obliczeń</p>
 
 <div id="start" class="card">
-<div id="qrok" class="hidden"><p class="meta">Zalogowano kodem QR jako:</p><p class="grade" id="qrname"></p></div>
-<div id="manual">
-<p class="meta">Zeskanuj kod QR ze swojej karty albo wpisz dane ręcznie.</p>
 <label class="f" for="name">Imię i nazwisko</label>
 <input id="name" type="text" autocomplete="name" placeholder="np. Jan Kowalski">
-<label class="f" for="code" style="margin-top:12px">Kod ucznia (z karty)</label>
-<input id="code" type="text" autocapitalize="characters" autocomplete="off" placeholder="np. K7Q2M" maxlength="5">
-<p id="codeerr" class="wrong hidden" style="margin:8px 0 0">Kod nie pasuje do imienia i nazwiska.</p>
-</div>
 <p class="meta">Każde pytanie ma jedną poprawną odpowiedź. Po zaznaczeniu odpowiedzi przejdź dalej przyciskiem „Dalej”. Na końcu zobaczysz wynik — pokaż go nauczycielowi.</p>
 <p class="meta"><b>Uwaga:</b> podczas testu nie wychodź z tej strony. Każde przełączenie na inną aplikację, kartę lub ekran główny jest liczone i widoczne w wyniku.</p>
+<p id="conn" class="meta"></p>
 <button id="go" class="btn" disabled>Rozpocznij test</button>
 </div>
 
@@ -73,6 +67,8 @@ button{font:inherit;cursor:pointer}
 <div class="grade" id="grade"></div>
 <div class="exits" id="exits"></div>
 <div class="meta" id="extra"></div>
+<div id="sent" class="exits hidden"></div>
+<button id="resend" class="btn sec hidden">Wyślij wynik ponownie</button>
 <button id="again" class="btn sec">Rozwiąż ponownie</button>
 <div class="rev" id="review"></div>
 </div>
@@ -105,18 +101,20 @@ var Q=[
 var order=[],cur=0,ans=[],sel=-1,name="",running=false,exits=0,away=0,leftAt=0,lastOut=0,attempt=0,t0=0;
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
 var $=function(id){return document.getElementById(id)};
-var SALT="ZN-2026",login="";
 function norm(n){return n.trim().replace(/\s+/g," ")}
-function code(n){n=norm(n).toLowerCase()+"|"+SALT;var h=2166136261;for(var i=0;i<n.length;i++){h^=n.charCodeAt(i);h=Math.imul(h,16777619)>>>0}
-var a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",r="";for(var j=0;j<5;j++){r+=a[h%32];h=Math.floor(h/32)}return r}
-function chk(){var n=norm($("name").value),c=$("code").value.trim().toUpperCase(),ok=n.length>=3&&c.length==5&&c==code(n);
-$("codeerr").classList.toggle("hidden",ok||c.length<5||n.length<3);$("go").disabled=!ok}
-$("name").addEventListener("input",chk);$("code").addEventListener("input",chk);
-(function(){var q=new URLSearchParams((location.hash||"").replace(/^#/,"")||location.search.slice(1)),u=q.get("u"),k=(q.get("k")||"").toUpperCase();
-if(u&&k&&k==code(u)){login="QR";$("name").value=norm(u);$("qrname").textContent=norm(u);$("qrok").classList.remove("hidden");$("manual").classList.add("hidden");$("go").disabled=false}})();
+var SES=(new URLSearchParams((location.hash||"").replace(/^#/,""))).get("s")||"";if(!/^[A-Za-z0-9]{6,24}$/.test(SES))SES="";
+var lastResult=null;
+$("conn").innerHTML=SES?'<span class="good">✓ Połączono z ekranem nauczyciela – wynik zostanie wysłany automatycznie.</span>':'<span class="wrong">Brak połączenia z nauczycielem – zeskanuj kod QR z ekranu w klasie.</span>';
+function send(o){if(!SES)return Promise.resolve(false);o.n=name;o.a=attempt;o.ts=Date.now();
+return fetch("https://ntfy.sh/zn-"+SES,{method:"POST",body:JSON.stringify(o)}).then(function(r){return r.ok}).catch(function(){return false})}
+function sendResult(){var el=$("sent");el.className="exits";el.textContent="Wysyłanie wyniku…";$("resend").classList.add("hidden");
+if(!SES){el.className="exits nz";el.textContent="Wynik nie został wysłany (brak połączenia z nauczycielem). Pokaż ten ekran nauczycielowi.";return}
+send(lastResult).then(function(ok){el.className="exits "+(ok?"z":"nz");el.textContent=ok?"✓ Wynik wysłany do nauczyciela":"Nie udało się wysłać wyniku. Sprawdź internet i spróbuj ponownie.";if(!ok)$("resend").classList.remove("hidden")})}
+$("resend").onclick=sendResult;
+$("name").addEventListener("input",function(){$("go").disabled=norm(this.value).length<3});
 $("go").onclick=start;$("again").onclick=function(){$("result").classList.add("hidden");$("start").classList.remove("hidden");window.scrollTo(0,0)};
-function start(){name=norm($("name").value);if(!login)login="kod ręczny";running=true;exits=0;away=0;leftAt=0;attempt++;t0=Date.now();order=shuffle(Q.map(function(q,i){return{q:i,o:shuffle([0,1,2,3])}}));cur=0;ans=[];
-$("start").classList.add("hidden");$("quiz").classList.remove("hidden");show()}
+function start(){name=norm($("name").value);running=true;exits=0;away=0;leftAt=0;attempt++;t0=Date.now();order=shuffle(Q.map(function(q,i){return{q:i,o:shuffle([0,1,2,3])}}));cur=0;ans=[];
+$("start").classList.add("hidden");$("quiz").classList.remove("hidden");send({t:"start"});show()}
 function show(){var it=order[cur],q=Q[it.q];sel=-1;$("next").disabled=true;
 $("next").textContent=cur==order.length-1?"Zakończ test":"Dalej";
 $("count").textContent="Pytanie "+(cur+1)+" z "+order.length;$("bar").style.width=(cur/order.length*100)+"%";
@@ -130,9 +128,11 @@ var n=order.length,p=Math.round(ok/n*100),gr=p>=91?"bardzo dobry (5)":p>=75?"dob
 var d=new Date();$("who").textContent=name+" · "+d.toLocaleDateString("pl-PL")+" "+d.toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"});
 $("score").textContent=ok+" / "+n+" ("+p+"%)";$("grade").textContent="Ocena: "+gr;$("review").innerHTML="<h3>Twoje odpowiedzi</h3>"+html;
 var ex=$("exits");ex.className="exits "+(exits?"nz":"z");ex.textContent=exits?"Wyjścia z testu: "+exits+" (łącznie poza testem: "+Math.round(away/1000)+" s)":"Wyjścia z testu: 0";
-var mins=Math.floor((Date.now()-t0)/60000),secs=Math.round((Date.now()-t0)/1000)%60;$("extra").textContent="Logowanie: "+login+" · podejście nr "+attempt+" · czas rozwiązywania: "+mins+" min "+secs+" s";
+var mins=Math.floor((Date.now()-t0)/60000),secs=Math.round((Date.now()-t0)/1000)%60;$("extra").textContent="Podejście nr "+attempt+" · czas rozwiązywania: "+mins+" min "+secs+" s";
+var wrong=[];order.forEach(function(it,i){if(ans[i]!==0)wrong.push(it.q+1)});
+lastResult={t:"end",ok:ok,of:n,p:p,g:gr,e:exits,aw:Math.round(away/1000),d:Math.round((Date.now()-t0)/1000),w:wrong};sendResult();
 $("quiz").classList.add("hidden");$("result").classList.remove("hidden");window.scrollTo(0,0)}
-function out(){if(!running||leftAt)return;var n=Date.now();if(n-lastOut<1500)return;lastOut=n;leftAt=n;exits++}
+function out(){if(!running||leftAt)return;var n=Date.now();if(n-lastOut<1500)return;lastOut=n;leftAt=n;exits++;send({t:"exit",e:exits})}
 function back(){if(!running||!leftAt)return;away+=Date.now()-leftAt;leftAt=0;var w=$("warn");w.textContent="Wykryto wyjście z testu ("+exits+"). Zostanie to pokazane w wyniku.";w.classList.remove("hidden");clearTimeout(w._t);w._t=setTimeout(function(){w.classList.add("hidden")},4000)}
 document.addEventListener("visibilitychange",function(){if(document.hidden)out();else back()});
 window.addEventListener("blur",out);window.addEventListener("focus",back);
