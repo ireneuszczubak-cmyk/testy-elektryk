@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test ELE.05: Instalacje elektryczne</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#F4F1EA;color:#14213D;line-height:1.45}
+.wrap{max-width:640px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:24px;margin:8px 0 4px}
+.sub{color:#4A5468;font-size:15px;margin:0 0 20px}
+.card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(20,33,61,.12);border-top:6px solid #F2A541}
+label.f{display:block;font-weight:600;margin:0 0 6px}
+input[type=text]{width:100%;font-size:17px;padding:12px;border:2px solid #D9D3C4;border-radius:10px}
+button{font:inherit;cursor:pointer}
+.btn{display:block;width:100%;margin-top:16px;padding:14px;font-size:17px;font-weight:700;border:0;border-radius:12px;background:#14213D;color:#fff}
+.btn:disabled{background:#B8C0D0}
+.btn.sec{background:#fff;color:#14213D;border:2px solid #14213D}
+.prog{height:8px;background:#E3DED2;border-radius:4px;overflow:hidden;margin-bottom:8px}
+.prog div{height:100%;background:#F2A541;width:0}
+.count{font-size:14px;color:#4A5468;margin-bottom:12px}
+.q{font-size:19px;font-weight:700;margin:0 0 16px}
+.opt{display:block;width:100%;text-align:left;margin:0 0 10px;padding:14px;font-size:16px;border:2px solid #D9D3C4;border-radius:12px;background:#FBF9F4;color:#14213D}
+.opt.sel{border-color:#2B6CB0;background:#E3EAF3}
+.opt.ok{border-color:#1F6B3A;background:#E3F2E8}
+.opt.bad{border-color:#9B2C1F;background:#F8E4E1}
+.expl{margin-top:8px;padding:12px;border-left:5px solid #2B6CB0;background:#E3EAF3;border-radius:6px;font-size:15px}
+.score{font-size:44px;font-weight:800;margin:8px 0}
+.grade{font-size:20px;font-weight:700}
+.meta{color:#4A5468;font-size:14px}
+.rev{margin-top:20px}
+.rev .item{border-top:1px solid #E3DED2;padding:12px 0;font-size:15px}
+.rev .item b{display:block;margin-bottom:4px}
+.good{color:#1F6B3A;font-weight:700}.wrong{color:#9B2C1F;font-weight:700}
+.hidden{display:none}
+.warn{position:fixed;left:12px;right:12px;top:12px;z-index:9;background:#9B2C1F;color:#fff;padding:14px 16px;border-radius:12px;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.exits{margin:12px 0 4px;padding:12px;border-radius:10px;font-weight:700}
+.exits.z{background:#E3F2E8;color:#1F6B3A}.exits.nz{background:#F8E4E1;color:#9B2C1F}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>ELE.05 – Instalacje elektryczne</h1>
+<p class="sub">Test jednokrotnego wyboru · 40 pytań · bez obliczeń</p>
+
+<div id="start" class="card">
+<label class="f" for="name">Imię i nazwisko</label>
+<input id="name" type="text" autocomplete="name" placeholder="np. Jan Kowalski">
+<p class="meta">Każde pytanie ma jedną poprawną odpowiedź. Po zaznaczeniu odpowiedzi przejdź dalej przyciskiem „Dalej”. Na końcu zobaczysz wynik — pokaż go nauczycielowi.</p>
+<p class="meta"><b>Uwaga:</b> podczas testu nie wychodź z tej strony. Każde przełączenie na inną aplikację, kartę lub ekran główny jest liczone i widoczne w wyniku.</p>
+<p id="conn" class="meta"></p>
+<button id="go" class="btn" disabled>Rozpocznij test</button>
+</div>
+
+<div id="quiz" class="card hidden">
+<div class="prog"><div id="bar"></div></div>
+<div class="count" id="count"></div>
+<p class="q" id="qtext"></p>
+<div id="opts"></div>
+<button id="next" class="btn" disabled>Dalej</button>
+</div>
+
+<div id="result" class="card hidden">
+<div class="meta" id="who"></div>
+<div class="score" id="score"></div>
+<div class="grade" id="grade"></div>
+<div class="exits" id="exits"></div>
+<div class="meta" id="extra"></div>
+<div id="sent" class="exits hidden"></div>
+<button id="resend" class="btn sec hidden">Wyślij wynik ponownie</button>
+<button id="again" class="btn sec">Rozwiąż ponownie</button>
+<div class="rev" id="review"></div>
+</div>
+</div>
+<div id="warn" class="warn hidden"></div>
+
+<script>
+var Q=[
+[
+"Którą z wymienionych czynności pracownik może wykonywać bez polecenia osób dozorujących pracę?",
+[
+"Gaszenie pożaru urządzenia elektrycznego.",
+"Remont rozdzielnicy po ugaszeniu pożaru.",
+"Wymianę izolatora na linii napowietrznej nn.",
+"Lokalizowanie uszkodzeń w linii kablowej nn."
+],
+""
+],
+[
+"Kontrole instalacji elektrycznej w obiektach użyteczności publicznej powinny być przeprowadzane nie rzadziej niż co",
+[
+"5 lat",
+"3 lata",
+"2 lata",
+"4 lata"
+],
+""
+],
+[
+"Dokumentacja użytkowania instalacji elektrycznych chronionych wyłącznikami nadmiarowoprądowymi nie jest zobowiązana do zawierania",
+[
+"opisu doboru urządzeń zabezpieczających",
+"spisu terminów oraz zakresów testów i pomiarów kontrolnych",
+"zasad bezpieczeństwa dotyczących wykonywania prac eksploatacyjnych",
+"charakterystyki technicznej instalacji"
+],
+""
+],
+[
+"Jak należy zasilać odbiornik o dużej mocy, taki jak kuchenka elektryczna?",
+[
+"z wydzielonego obwodu z własnym zabezpieczeniem",
+"ze wspólnego obwodu oświetleniowego",
+"ze wspólnego obwodu gniazd wtyczkowych",
+"z wydzielonego obwodu bez własnych zabezpieczeń"
+],
+""
+],
+[
+"Na wartość impedancji pętli zwarcia w systemie sieciowym TN-C mają wpływ",
+[
+"pole przekroju poprzecznego żył przewodów",
+"liczba zamontowanych ochronników przeciwprzepięciowych",
+"rodzaj zamontowanych ochronników przeciwprzepięciowych",
+"wytrzymałość napięciowa izolacji przewodów"
+],
+""
+],
+[
+"Jaki jest maksymalny czas automatycznego wyłączenia zasilania w celu zapewnienia ochrony przed porażeniem elektrycznym w przypadku awarii w obwodach odbiorczych o prądzie nominalnym I < 32 A w jednofazowym układzie sieciowym TN przy napięciu 230 V?",
+[
+"0,4 s",
+"5,0 s",
+"0,2 s",
+"0,1 s"
+],
+""
+],
+[
+"Jakie maksymalne napięcie elektryczne należy wykorzystać do zasilania lampy oświetleniowej zlokalizowanej w łazience w strefie 0?",
+[
+"12 V AC",
+"50 V AC",
+"230 V AC",
+"110 V DC"
+],
+""
+],
+[
+"Jaką czynność można wykonać przy lokalizacji uszkodzeń w trakcie funkcjonowania instalacji oraz urządzeń elektrycznych w obszarach narażonych na wybuch?",
+[
+"Pomiar temperatury zewnętrznych powierzchni obudów silników",
+"Wymiana źródeł oświetlenia",
+"Demontaż obudów urządzeń",
+"Dokręcanie luźnych śrub w osłonach urządzeń"
+],
+""
+],
+[
+"Jaki jest maksymalny dopuszczalny czas wyłączenia zasilania w celu zapewnienia ochrony przed porażeniem elektrycznym w przypadku uszkodzenia w systemie sieciowym TN-S, kiedy napięcie fazowe przekracza 400 V, a obwody odbiorcze mają prąd znamionowy do 32 A?",
+[
+"0,1 s",
+"0,5 s",
+"0,2 s",
+"0,8 s"
+],
+""
+],
+[
+"Jaki jest główny powód stosowania bezpieczników w instalacjach elektrycznych?",
+[
+"Ochrona przed przeciążeniem i zwarciem",
+"Redukcja hałasu w instalacji",
+"Poprawa jakości dostarczanej energii",
+"Zmniejszenie wartości napięcia w obwodach"
+],
+""
+],
+[
+"Kto jest zobowiązany do opracowania planów regularnych przeglądów oraz konserwacji instalacji elektrycznej w obiekcie mieszkalnym?",
+[
+"Właściciel lub zarządca nieruchomości",
+"Organ inspekcji technicznej",
+"Dostawca energii elektrycznej",
+"Użytkownicy mieszkań"
+],
+""
+],
+[
+"Który z wymienionych środków ochrony w przypadku uszkodzenia można stosować jedynie w sytuacji, gdy instalacja jest nadzorowana przez wykwalifikowane osoby?",
+[
+"Izolowanie stanowiska",
+"Bardzo niskie napięcie PELV",
+"Izolacja wzmocniona",
+"Bardzo niskie napięcie SELV"
+],
+""
+],
+[
+"Podczas intensywnych opadów śniegu w jednym z rejonów napowietrznej linii niskiego napięcia zaobserwowano zanik napięcia w jednej fazie. Monterzy wymienili uszkodzony bezpiecznik w stacji transformatorowej na słupie, ale po ponownym uruchomieniu zasilania bezpiecznik natychmiast znowu uległ awarii. Jakie mogą być najprawdopodobniejsze przyczyny tej usterki?",
+[
+"Zwarcie doziemne jednej fazy",
+"Zawilgocenie izolacji przewodów AFL do odbiorców",
+"Przeciążenie obwodu linii spowodowane dogrzewaniem elektrycznym mieszkań",
+"Zbyt duża asymetria obciążenia odbiornikami u jednego z odbiorców"
+],
+""
+],
+[
+"Zwiększenie liczby kabli umieszczonych w jednej rurze instalacyjnej spowoduje",
+[
+"zmniejszenie dopuszczalnego obciążenia prądem długotrwałym jednego kabla",
+"wydłużenie czasu osiągania granicznej temperatury izolacji kabli",
+"zmniejszenie wartości obliczeniowej rezystancji żył pojedynczego kabla",
+"zwiększenie dozwolonej wartości spadku napięcia na kablach"
+],
+""
+],
+[
+"Jakie rozwiązania powinny być wdrożone, aby zapewnić ochronę przed porażeniem elektrycznym w przypadku uszkodzenia pracowników obsługujących maszynę roboczą, która jest napędzana silnikiem trójfazowym o napięciu 230/400 V, podłączonym do sieci TN-S i zabezpieczonym wyłącznikiem różnicowoprądowym?",
+[
+"Podłączyć obudowę silnika do przewodu PE",
+"Podłączyć obudowę silnika do przewodu N",
+"Wykorzystać zasilanie w systemie PELV",
+"Wprowadzić zasilanie w systemie SELV"
+],
+""
+],
+[
+"Który z poniższych kabli nadaje się do realizacji instalacji siłowej osadzonej w tynku w konfiguracji sieci TN-S?",
+[
+"YDYżo 5x2,5 mm²",
+"YADY 3x4 mm²",
+"YSLY 3x2,5 mm²",
+"YStY 5x1 mm²"
+],
+""
+],
+[
+"Podaj, jaką wartość nie może przewyższać spodziewane napięcie dotykowe na dostępnej części przewodzącej urządzenia działającego w normalnych warunkach środowiskowych, podczas samoczynnego wyłączenia wynoszącego 5 s, przy prawidłowo dobranych przewodach oraz zabezpieczeniach w elektrycznej instalacji do 1 kV.",
+[
+"50 V",
+"70 V",
+"220 V",
+"110 V"
+],
+""
+],
+[
+"Podczas wymiany gniazda wtyczkowego w instalacji domowej wykonanej w rurkach pod tynkiem złamał się jeden z przewodów aluminiowych, przez co stał się za krótki. Jak powinno się postąpić w tej sytuacji przy wymianie gniazda?",
+[
+"Przed zamontowaniem gniazda wymienić przewody na miedziane, wciągając nowe razem z usuwaniem starych",
+"Przylutować brakującą część przewodu aluminiowego i zamontować gniazdo",
+"Skręcić złamany przewód z kawałkiem przewodu miedzianego i zamontować gniazdo",
+"Przed zamontowaniem gniazda usunąć uszkodzony przewód i wciągnąć nowy miedziany"
+],
+""
+],
+[
+"Gdzie i w jaki sposób powinny być założone przenośne uziemienia przewodów zasilających w czasie przygotowywania stanowiska pracy przy urządzeniu elektrycznym odłączonym od napięcia, jeżeli wiadomo, że w normalnych warunkach może być ono dwustronnie zasilane?",
+[
+"Po obu stronach urządzenia, ale przynajmniej jedno powinno być widoczne z miejsca pracy.",
+"Z jednej strony urządzenia tak, aby były widoczne z miejsca pracy.",
+"Z jednej strony urządzenia tak, aby były niewidoczne z miejsca pracy.",
+"Po obu stronach urządzenia, ale nie muszą być widoczne z miejsca pracy."
+],
+""
+],
+[
+"Aby przygotować instalację elektryczną oświetlenia do przeprowadzenia pomiarów rezystancji izolacji, konieczne jest odłączenie zasilania oraz",
+[
+"zamknąć łączniki instalacyjne i wykręcić żarówki",
+"otworzyć łączniki instalacyjne i wkręcić żarówki",
+"otworzyć łączniki instalacyjne i wykręcić żarówki",
+"zamknąć łączniki instalacyjne i wkręcić żarówki"
+],
+""
+],
+[
+"W obwodzie gniazd w przedpokoju zainstalowano przewód YDYt 3×2,5 mm². Podczas wiercenia w ścianie pracownik przypadkowo uszkodził przewód, przecinając dwie jego żyły. Jak należy prawidłowo naprawić powstałą usterkę?",
+[
+"Zdemontować tynk w miejscu uszkodzenia, zainstalować dodatkową puszkę i w niej połączyć żyły.",
+"Przeciągnąć wyłącznie uszkodzone żyły, zastępując każdą przewodem jednodrutowym.",
+"Zdemontować tynk w miejscu uszkodzenia, połączyć przewody, zaizolować taśmą i zatynkować ścianę.",
+"Przeciągnąć nowy przewód pomiędzy najbliższymi puszkami, używając pilota."
+],
+""
+],
+[
+"Który z podanych przewodów jest przeznaczony do instalacji wtynkowej?",
+[
+"YDYt",
+"OMYp",
+"LYg",
+"YADYn"
+],
+""
+],
+[
+"Jakie oznaczenie będzie miał przewód – alternatywa dla przewodu OW 4×2,5 mm² zasilającego przenośny trójfazowy silnik indukcyjny używany w warsztacie ślusarskim?",
+[
+"H07RR-F 4G2,5",
+"H07VV-U 4G2,5",
+"H03V2V2H2-F 3X2,5",
+"H03V2V2-F 3X2,5"
+],
+""
+],
+[
+"Które ze stwierdzeń nie jest wnioskiem z oględzin instalacji elektrycznej?",
+[
+"Zachowana jest ciągłość przewodów ochronnych oraz połączeń wyrównawczych.",
+"Według informacji producenta, oznakowań i świadectw elementy instalacji spełniają wymagania bezpieczeństwa.",
+"Elementy instalacji zostały dobrane i zainstalowane prawidłowo.",
+"W instalacji brak jest widocznych uszkodzeń, wpływających na pogorszenie bezpieczeństwa."
+],
+""
+],
+[
+"W jaki sposób zareaguje trójfazowy silnik indukcyjny obciążony momentem znamionowym po podłączeniu zasilania, jeśli jeden z fazowych przewodów zasilających został odłączony od zacisku silnika?",
+[
+"Nie uruchomi się",
+"Zacznie obracać się z prędkością trzykrotnie niższą od znamionowej",
+"Rozbiegnie się",
+"Zacznie wirować w kierunku przeciwnym do spodziewanego"
+],
+""
+],
+[
+"Co należy zrobić w przypadku przeciążenia silnika elektrycznego podczas pracy?",
+[
+"Zredukować obciążenie lub sprawdzić wyłączniki termiczne",
+"Zwiększyć napięcie zasilające",
+"Zwiększyć długość przewodów zasilających",
+"Zastosować dodatkowy filtr harmonicznych"
+],
+""
+],
+[
+"Które z wymienionych czynności przy instalacjach elektrycznych do 1 kV wymagają wydania polecenia?",
+[
+"Okresowe, określone w planie przeglądów.",
+"Codzienne, określone w instrukcji eksploatacji.",
+"Związane z ratowaniem zdrowia i życia ludzkiego.",
+"Związane z ratowaniem urządzeń przed zniszczeniem."
+],
+""
+],
+[
+"Który z wymienionych sposobów pozwoli najszybciej połączyć w puszce przerwane żyły kabla wtynkowego?",
+[
+"Zastosowanie złączek zatrzaskowych.",
+"Skręcenie żył kabla.",
+"Zlutowanie żył kabla.",
+"Zastosowanie złączek śrubowych."
+],
+""
+],
+[
+"W jakim celu stosuje się kompensację mocy biernej w instalacjach przemysłowych?",
+[
+"Zmniejszenia strat energii i poprawy współczynnika mocy",
+"Zwiększenia częstotliwości prądu",
+"Zwiększenia napięcia znamionowego",
+"Zmniejszenia prędkości obrotowej silników"
+],
+""
+],
+[
+"Jakim kolorem należy oznaczać nieizolowany przewód uziemiający punkt gwiazdowy transformatora SN/nn, który zasila sieć TN-C, gdy jest wykonany w formie taśmy?",
+[
+"Żółto-zielony",
+"Zielony",
+"Czarny",
+"Jasnoniebieski"
+],
+""
+],
+[
+"Jakie skutki dla instalacji mieszkalnej przyniesie zamiana przewodu YDY 3x1,5 mm² na YADY 3 x 1,5 mm²?",
+[
+"Obciążalność długotrwała instalacji zostanie zmniejszona",
+"Przewodność elektryczna przewodów ulegnie zwiększeniu",
+"Wytrzymałość elektryczna izolacji wzrośnie",
+"Rezystancja przewodów ulegnie zmniejszeniu"
+],
+""
+],
+[
+"W instalacjach oświetleniowych w mieszkaniach nie wolno używać opraw oświetleniowych stałych i regulowanych wykonanych w klasie ochronności",
+[
+"0",
+"II",
+"I",
+"III"
+],
+""
+],
+[
+"Który z podanych przewodów powinien zostać wybrany w celu zastąpienia uszkodzonego przewodu zasilającego silnik trójfazowy zainstalowany w odbiorniku ruchomym?",
+[
+"OP4x2,5 mm²",
+"SM3x2,5 mm²",
+"YDY 4x2,5 mm²",
+"YLY 3x2,5 mm²"
+],
+""
+],
+[
+"Między którymi z podanych kombinacji przewodów należy wymusić prąd różnicowy, aby sprawdzić poprawność działania trójfazowego wyłącznika różnicowoprądowego?",
+[
+"L1 i PE",
+"L1 i N",
+"L1 i L2",
+"L1 i L3"
+],
+""
+],
+[
+"Jakim przewodem powinno się przeprowadzić instalację oświetlenia natynkowego na uchwytach w piwnicy budynku wielorodzinnego?",
+[
+"YDY",
+"DYd",
+"LgY",
+"YDYt"
+],
+""
+],
+[
+"W instalacji trójfazowej działającej w układzie TN-C, gdy na odbiornikach wystąpi napięcie fazowe przekraczające 300 V, może to być spowodowane",
+[
+"przerwaniem ciągłości przewodu PEN",
+"zwarciem między fazą a przewodem PEN",
+"zwarciem pomiędzy fazami",
+"przerwą w jednej z faz"
+],
+""
+],
+[
+"Który z poniższych środków ostrożności nie jest wymagany dla zapewnienia bezpieczeństwa podczas realizacji prac przy linii napowietrznej, która została odłączona od zasilania?",
+[
+"Używanie sprzętu izolacyjnego",
+"Realizowanie pracy w zespole",
+"Ogrodzenie terenu, na którym prowadzone są prace",
+"Przyłączenie wyłączonej linii do uziemienia"
+],
+""
+],
+[
+"Która z wymienionych przyczyn odpowiada za zadziałanie wyłącznika różnicowoprądowego w chwili przyłączenia trójfazowego silnika do gniazda wtyczkowego?",
+[
+"Połączenie kabla N i PE z obudową silnika.",
+"Błędna kolejność faz zasilających.",
+"Błędne skojarzenie uzwojeń silnika.",
+"Zwarcie kabla N z kablem fazowym."
+],
+""
+],
+[
+"Do jakiego rodzaju pracy przeznaczony jest silnik elektryczny, jeśli na jego tabliczce znamionowej podany jest symbol S2?",
+[
+"Dorywczej.",
+"Ciągłej.",
+"Okresowej przerywanej.",
+"Okresowej długotrwałej."
+],
+""
+],
+[
+"Który z podanych przewodów nie jest stosowany jako przewód fazowy w instalacjach trójfazowych?",
+[
+"Przewód N",
+"Przewód L1",
+"Przewód L2",
+"Przewód L3"
+],
+""
+]
+];
+var order=[],cur=0,ans=[],sel=-1,name="",running=false,exits=0,away=0,leftAt=0,lastOut=0,attempt=0,t0=0;
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+var $=function(id){return document.getElementById(id)};
+function norm(n){return n.trim().replace(/\s+/g," ")}
+var SES=(new URLSearchParams((location.hash||"").replace(/^#/,""))).get("s")||"";if(!/^[A-Za-z0-9]{6,24}$/.test(SES))SES="";
+var lastResult=null;
+$("conn").innerHTML=SES?'<span class="good">✓ Połączono z ekranem nauczyciela – wynik zostanie wysłany automatycznie.</span>':'<span class="wrong">Brak połączenia z nauczycielem – zeskanuj kod QR z ekranu w klasie.</span>';
+function send(o){if(!SES)return Promise.resolve(false);o.n=name;o.a=attempt;o.ts=Date.now();
+return fetch("https://ntfy.sh/e5-"+SES,{method:"POST",body:JSON.stringify(o)}).then(function(r){return r.ok}).catch(function(){return false})}
+function sendResult(){var el=$("sent");el.className="exits";el.textContent="Wysyłanie wyniku…";$("resend").classList.add("hidden");
+if(!SES){el.className="exits nz";el.textContent="Wynik nie został wysłany (brak połączenia z nauczycielem). Pokaż ten ekran nauczycielowi.";return}
+send(lastResult).then(function(ok){el.className="exits "+(ok?"z":"nz");el.textContent=ok?"✓ Wynik wysłany do nauczyciela":"Nie udało się wysłać wyniku. Sprawdź internet i spróbuj ponownie.";if(!ok)$("resend").classList.remove("hidden")})}
+$("resend").onclick=sendResult;
+$("name").addEventListener("input",function(){$("go").disabled=norm(this.value).length<3});
+$("go").onclick=start;$("again").onclick=function(){$("result").classList.add("hidden");$("start").classList.remove("hidden");window.scrollTo(0,0)};
+function start(){name=norm($("name").value);running=true;exits=0;away=0;leftAt=0;attempt++;t0=Date.now();order=shuffle(Q.map(function(q,i){return{q:i,o:shuffle([0,1,2,3])}}));cur=0;ans=[];
+$("start").classList.add("hidden");$("quiz").classList.remove("hidden");send({t:"start"});show()}
+function show(){var it=order[cur],q=Q[it.q];sel=-1;$("next").disabled=true;
+$("next").textContent=cur==order.length-1?"Zakończ test":"Dalej";
+$("count").textContent="Pytanie "+(cur+1)+" z "+order.length;$("bar").style.width=(cur/order.length*100)+"%";
+$("qtext").textContent=q[0];var box=$("opts");box.innerHTML="";
+it.o.forEach(function(oi,k){var b=document.createElement("button");b.className="opt";b.textContent=String.fromCharCode(65+k)+". "+q[1][oi];
+b.onclick=function(){sel=oi;[].forEach.call(box.children,function(c){c.classList.remove("sel")});b.classList.add("sel");$("next").disabled=false};box.appendChild(b)});window.scrollTo(0,0)}
+$("next").onclick=function(){ans.push(sel);cur++;if(cur<order.length)show();else finish()};
+function finish(){running=false;$("warn").classList.add("hidden");var ok=0,html="";order.forEach(function(it,i){var q=Q[it.q],g=ans[i]===0;if(g)ok++;
+html+='<div class="item"><b>'+(i+1)+". "+q[0]+'</b>'+(g?'<span class="good">Dobrze:</span> '+q[1][0]:'<span class="wrong">Twoja odpowiedź:</span> '+q[1][ans[i]]+'<br><span class="good">Poprawna:</span> '+q[1][0])+(q[2]?'<div class="expl">'+q[2]+'</div>':'')+'</div>'});
+var n=order.length,p=Math.round(ok/n*100),gr=p>=91?"bardzo dobry (5)":p>=75?"dobry (4)":p>=50?"dostateczny (3)":p>=30?"dopuszczający (2)":"niedostateczny (1)";
+var d=new Date();$("who").textContent=name+" · "+d.toLocaleDateString("pl-PL")+" "+d.toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"});
+$("score").textContent=ok+" / "+n+" ("+p+"%)";$("grade").textContent="Ocena: "+gr;$("review").innerHTML="<h3>Twoje odpowiedzi</h3>"+html;
+var ex=$("exits");ex.className="exits "+(exits?"nz":"z");ex.textContent=exits?"Wyjścia z testu: "+exits+" (łącznie poza testem: "+Math.round(away/1000)+" s)":"Wyjścia z testu: 0";
+var mins=Math.floor((Date.now()-t0)/60000),secs=Math.round((Date.now()-t0)/1000)%60;$("extra").textContent="Podejście nr "+attempt+" · czas rozwiązywania: "+mins+" min "+secs+" s";
+var wrong=[];order.forEach(function(it,i){if(ans[i]!==0)wrong.push(it.q+1)});
+lastResult={t:"end",ok:ok,of:n,p:p,g:gr,e:exits,aw:Math.round(away/1000),d:Math.round((Date.now()-t0)/1000),w:wrong};sendResult();
+$("quiz").classList.add("hidden");$("result").classList.remove("hidden");window.scrollTo(0,0)}
+function out(){if(!running||leftAt)return;var n=Date.now();if(n-lastOut<1500)return;lastOut=n;leftAt=n;exits++;send({t:"exit",e:exits})}
+function back(){if(!running||!leftAt)return;away+=Date.now()-leftAt;leftAt=0;var w=$("warn");w.textContent="Wykryto wyjście z testu ("+exits+"). Zostanie to pokazane w wyniku.";w.classList.remove("hidden");clearTimeout(w._t);w._t=setTimeout(function(){w.classList.add("hidden")},4000)}
+document.addEventListener("visibilitychange",function(){if(document.hidden)out();else back()});
+window.addEventListener("blur",out);window.addEventListener("focus",back);
+window.addEventListener("pagehide",out);
+window.addEventListener("beforeunload",function(e){if(running){e.preventDefault();e.returnValue=""}});
+</script>
+</body>
+</html>
