@@ -50,6 +50,7 @@ button{font:inherit;cursor:pointer}
 <p class="meta">Każde pytanie ma jedną poprawną odpowiedź. Po zaznaczeniu odpowiedzi przejdź dalej przyciskiem „Dalej”. Na końcu zobaczysz wynik — pokaż go nauczycielowi.</p>
 <p class="meta"><b>Uwaga:</b> podczas testu nie wychodź z tej strony. Każde przełączenie na inną aplikację, kartę lub ekran główny jest liczone i widoczne w wyniku.</p>
 <p id="conn" class="meta"></p>
+<div id="sesbox" class="hidden"><label class="f" for="sesin">Kod sesji z ekranu nauczyciela</label><input id="sesin" type="text" autocapitalize="characters" autocomplete="off" maxlength="12" placeholder="np. K7Q2M8XAB3"></div>
 <button id="go" class="btn" disabled>Rozpocznij test</button>
 </div>
 
@@ -482,9 +483,11 @@ var order=[],cur=0,ans=[],sel=-1,name="",running=false,exits=0,away=0,leftAt=0,l
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
 var $=function(id){return document.getElementById(id)};
 function norm(n){return n.trim().replace(/\s+/g," ")}
-var SES=(new URLSearchParams((location.hash||"").replace(/^#/,""))).get("s")||"";if(!/^[A-Za-z0-9]{6,24}$/.test(SES))SES="";
+var SES=(new URLSearchParams((location.hash||"").replace(/^#/,""))).get("s")||(new URLSearchParams(location.search)).get("s")||"";if(!/^[A-Za-z0-9]{6,24}$/.test(SES))SES="";
 var lastResult=null;
-$("conn").innerHTML=SES?'<span class="good">✓ Połączono z ekranem nauczyciela – wynik zostanie wysłany automatycznie.</span>':'<span class="wrong">Brak połączenia z nauczycielem – zeskanuj kod QR z ekranu w klasie.</span>';
+function connMsg(){$("conn").innerHTML=SES?'<span class="good">✓ Połączono z ekranem nauczyciela – wynik zostanie wysłany automatycznie.</span>':'<span class="wrong">Brak połączenia z nauczycielem – zeskanuj kod QR z ekranu w klasie albo wpisz kod sesji poniżej.</span>'}
+connMsg();if(!SES)$("sesbox").classList.remove("hidden");
+$("sesin").addEventListener("input",function(){var v=this.value.trim().toUpperCase();SES=/^[A-Z0-9]{10}$/.test(v)?v:"";connMsg()});
 function send(o){if(!SES)return Promise.resolve(false);o.n=name;o.a=attempt;o.ts=Date.now();
 return fetch("https://ntfy.sh/e2-"+SES,{method:"POST",body:JSON.stringify(o)}).then(function(r){return r.ok}).catch(function(){return false})}
 function sendResult(){var el=$("sent");el.className="exits";el.textContent="Wysyłanie wyniku…";$("resend").classList.add("hidden");
