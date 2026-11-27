@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test ELE.02: Maszyny i urządzenia elektryczne</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#F4F1EA;color:#14213D;line-height:1.45}
+.wrap{max-width:640px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:24px;margin:8px 0 4px}
+.sub{color:#4A5468;font-size:15px;margin:0 0 20px}
+.card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(20,33,61,.12);border-top:6px solid #F2A541}
+label.f{display:block;font-weight:600;margin:0 0 6px}
+input[type=text]{width:100%;font-size:17px;padding:12px;border:2px solid #D9D3C4;border-radius:10px}
+button{font:inherit;cursor:pointer}
+.btn{display:block;width:100%;margin-top:16px;padding:14px;font-size:17px;font-weight:700;border:0;border-radius:12px;background:#14213D;color:#fff}
+.btn:disabled{background:#B8C0D0}
+.btn.sec{background:#fff;color:#14213D;border:2px solid #14213D}
+.prog{height:8px;background:#E3DED2;border-radius:4px;overflow:hidden;margin-bottom:8px}
+.prog div{height:100%;background:#F2A541;width:0}
+.count{font-size:14px;color:#4A5468;margin-bottom:12px}
+.q{font-size:19px;font-weight:700;margin:0 0 16px}
+.opt{display:block;width:100%;text-align:left;margin:0 0 10px;padding:14px;font-size:16px;border:2px solid #D9D3C4;border-radius:12px;background:#FBF9F4;color:#14213D}
+.opt.sel{border-color:#2B6CB0;background:#E3EAF3}
+.opt.ok{border-color:#1F6B3A;background:#E3F2E8}
+.opt.bad{border-color:#9B2C1F;background:#F8E4E1}
+.expl{margin-top:8px;padding:12px;border-left:5px solid #2B6CB0;background:#E3EAF3;border-radius:6px;font-size:15px}
+.score{font-size:44px;font-weight:800;margin:8px 0}
+.grade{font-size:20px;font-weight:700}
+.meta{color:#4A5468;font-size:14px}
+.rev{margin-top:20px}
+.rev .item{border-top:1px solid #E3DED2;padding:12px 0;font-size:15px}
+.rev .item b{display:block;margin-bottom:4px}
+.good{color:#1F6B3A;font-weight:700}.wrong{color:#9B2C1F;font-weight:700}
+.hidden{display:none}
+.warn{position:fixed;left:12px;right:12px;top:12px;z-index:9;background:#9B2C1F;color:#fff;padding:14px 16px;border-radius:12px;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.exits{margin:12px 0 4px;padding:12px;border-radius:10px;font-weight:700}
+.exits.z{background:#E3F2E8;color:#1F6B3A}.exits.nz{background:#F8E4E1;color:#9B2C1F}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>ELE.02 – Maszyny i urządzenia elektryczne</h1>
+<p class="sub">Test jednokrotnego wyboru · 40 pytań · bez obliczeń</p>
+
+<div id="start" class="card">
+<label class="f" for="name">Imię i nazwisko</label>
+<input id="name" type="text" autocomplete="name" placeholder="np. Jan Kowalski">
+<p class="meta">Każde pytanie ma jedną poprawną odpowiedź. Po zaznaczeniu odpowiedzi przejdź dalej przyciskiem „Dalej”. Na końcu zobaczysz wynik — pokaż go nauczycielowi.</p>
+<p class="meta"><b>Uwaga:</b> podczas testu nie wychodź z tej strony. Każde przełączenie na inną aplikację, kartę lub ekran główny jest liczone i widoczne w wyniku.</p>
+<p id="conn" class="meta"></p>
+<button id="go" class="btn" disabled>Rozpocznij test</button>
+</div>
+
+<div id="quiz" class="card hidden">
+<div class="prog"><div id="bar"></div></div>
+<div class="count" id="count"></div>
+<p class="q" id="qtext"></p>
+<div id="opts"></div>
+<button id="next" class="btn" disabled>Dalej</button>
+</div>
+
+<div id="result" class="card hidden">
+<div class="meta" id="who"></div>
+<div class="score" id="score"></div>
+<div class="grade" id="grade"></div>
+<div class="exits" id="exits"></div>
+<div class="meta" id="extra"></div>
+<div id="sent" class="exits hidden"></div>
+<button id="resend" class="btn sec hidden">Wyślij wynik ponownie</button>
+<button id="again" class="btn sec">Rozwiąż ponownie</button>
+<div class="rev" id="review"></div>
+</div>
+</div>
+<div id="warn" class="warn hidden"></div>
+
+<script>
+var Q=[
+[
+"Jaką rolę pełni wyłącznik odśrodkowy w silniku indukcyjnym jednofazowym z kondensatorową fazą rozruchową?",
+[
+"Wyłącza uzwojenie pomocnicze silnika i kondensator po zakończeniu rozruchu.",
+"Zwiera kondensator w celu rozładowania jego energii po zakończeniu rozruchu.",
+"Załącza kondensator przy pracy na biegu jałowym w celu poprawy współczynnika mocy.",
+"Załącza kondensator po zakończeniu rozruchu w celu wyeliminowania zakłóceń radioelektrycznych."
+],
+""
+],
+[
+"W jakiej z poniższych sytuacji poślizg silnika indukcyjnego będzie najmniejszy?",
+[
+"Silnik będzie pracować na biegu jałowym",
+"Silnik działa w nominalnych warunkach zasilania oraz obciążenia",
+"Silnik będzie zasilany prądem w kierunku przeciwnym",
+"Podczas zasilania silnika jego wirnik będzie stał"
+],
+""
+],
+[
+"Kierunek rotacji wirnika silnika elektrycznego ustala się, obserwując jego wał z perspektywy",
+[
+"czopu",
+"przewietrznika",
+"wprowadzenia przewodu zasilającego",
+"tabliczki znamionowej"
+],
+""
+],
+[
+"Który typ silnika elektrycznego najczęściej stosuje się w urządzeniach gospodarstwa domowego?",
+[
+"Silnik indukcyjny jednofazowy",
+"Silnik synchroniczny trójfazowy",
+"Silnik krokowy",
+"Silnik liniowy"
+],
+""
+],
+[
+"W jakim układzie sieciowym znajduje się bezpiecznik iskiernikowy podłączony pomiędzy punkt neutralny strony wtórnej transformatora, który zasila ten układ, a uziom roboczy?",
+[
+"IT",
+"TN-S",
+"TN-C",
+"TT"
+],
+""
+],
+[
+"Która z poniższych czynności jest częścią oględzin przy konserwacji wirnika silnika komutatorowego?",
+[
+"Sprawdzenie kondycji wycinków komutatora",
+"Wyważanie",
+"Pomiar rezystancji izolacji",
+"Weryfikacja braku zwarć międzyzwojowych"
+],
+""
+],
+[
+"Szczotki stosowane w silnikach elektrycznych wykonane są z materiałów",
+[
+"przewodzących.",
+"izolacyjnych.",
+"magnetycznych.",
+"półprzewodnikowych."
+],
+""
+],
+[
+"Jakie urządzenie powinno zostać zainstalowane w pośrednim układzie pomiarowym mocy czynnej w zakładzie przemysłowym?",
+[
+"Przekładnik prądowy",
+"Przetwornicę napięcia",
+"Transformator bezpieczeństwa",
+"Transformator separacyjny"
+],
+""
+],
+[
+"Jaką z wymienionych czynności należy wykonać podczas inspekcji działającego transformatora?",
+[
+"Weryfikacja poziomu oleju w olejowskazie konserwatora",
+"Obsługa przełącznika zaczepów",
+"Czyszczenie izolatorów",
+"Serwis styków oraz połączeń śrubowych"
+],
+""
+],
+[
+"Które z uzwojeń bocznikowego silnika prądu stałego uległo przerwaniu, jeśli nastąpił gwałtowny wzrost prędkości obrotowej jego wirnika?",
+[
+"Wzbudzenia.",
+"Kompensacyjne.",
+"Komutacyjne.",
+"Twornika."
+],
+""
+],
+[
+"Przy wykonywaniu oględzin układu pracy silnika trójfazowego pracującego w obrabiarce należy sprawdzić",
+[
+"stan osłon części wirujących.",
+"impedancję pętli zwarcia.",
+"rezystancję izolacji uzwojeń silnika.",
+"czas zadziałania zabezpieczenia zwarciowego."
+],
+""
+],
+[
+"Poślizg silnika indukcyjnego osiągnie wartość 1, gdy",
+[
+"wirnik silnika będzie w bezruchu.",
+"wirnik silnika zostanie dogoniony.",
+"silnik znajdzie się w stanie jałowym.",
+"silnik zostanie zasilony prądem przeciwnym."
+],
+""
+],
+[
+"Do którego rodzaju pracy przeznaczony jest silnik elektryczny, gdy na jego tabliczce znamionowej umieszczono oznaczenie S2?",
+[
+"Do pracy dorywczej.",
+"Do pracy przerywanej z dużą liczbą łączeń i rozruchów.",
+"Do pracy przerywanej z hamowaniem elektrycznym.",
+"Do pracy ciągłej."
+],
+""
+],
+[
+"Którą funkcję spełnia uzwojenie kompensacyjne w silniku prądu stałego?",
+[
+"Ogranicza oddziaływanie twornika w strefie biegunów głównych.",
+"Zwiększa moment obrotowy przy rozruchu.",
+"Zmniejsza straty mocy czynnej w uzwojeniu stojana.",
+"Ogranicza oddziaływanie twornika w strefie szczotek."
+],
+""
+],
+[
+"Który z wymienionych rodzajów wkładek topikowych powinien być użyty do zabezpieczenia przed zwarciem jednofazowego silnika indukcyjnego klatkowego?",
+[
+"aM",
+"gG",
+"gR",
+"aL"
+],
+""
+],
+[
+"Które z wymienionych czynności należy wykonać po próbnym uruchomieniu silnika indukcyjnego klatkowego (kierunek obrotów silnika jest prawidłowy), podczas jego pracy w warunkach znamionowego zasilania i obciążenia?",
+[
+"Zmierzyć wartość pobieranego prądu, sprawdzić stan sprzężenia z maszyną napędzaną i poprawność pracy łożysk.",
+"Ocenić stan urządzeń do przeprowadzenia rozruchu, aparatury sterującej i zabezpieczającej.",
+"Zmierzyć wartość napięcia zasilania, ocenić poprawność doboru typu silnika do maszyny napędzanej.",
+"Sprawdzić stan izolacji uzwojeń silnika, sprawdzić zapewnienie swobodnego dopływu powietrza do przewietrznika."
+],
+""
+],
+[
+"Kondensator stosowany w jednofazowych silnikach indukcyjnych przeznaczony jest do",
+[
+"wytworzenia momentu rozruchowego.",
+"zatrzymywania silnika.",
+"regulacji prędkości obrotowej.",
+"zmiany wartości napięcia w układzie."
+],
+""
+],
+[
+"Który element układu zasilania i sterowania silnikiem indukcyjnym steruje przełączeniem styczników łączących uzwojenia silnika w gwiazdę i w trójkąt?",
+[
+"Przekaźnik czasowy.",
+"Wyłącznik silnikowy.",
+"Przycisk sterujący zwrotny NO.",
+"Przycisk sterujący zwrotny NC."
+],
+""
+],
+[
+"Jaką rolę pełni uzwojenie pomocnicze w silniku prądu stałego?",
+[
+"Eliminuje niekorzystne zjawiska oddziaływania wirnika",
+"Generuje napięcie remanentu",
+"Obniża rezystancję obwodu twornika",
+"Wytwarza pole magnetyczne wzbudzenia"
+],
+""
+],
+[
+"Który z podanych odbiorników energii elektrycznej charakteryzuje się najkorzystniejszym współczynnikiem mocy w aspekcie ekonomicznym?",
+[
+"Piec oporowy",
+"Silnik uniwersalny",
+"Wzbudnik indukcyjny",
+"Silnik asynchroniczny"
+],
+""
+],
+[
+"Przed zainstalowaniem uzwojenia wsypywanego stojana w silniku indukcyjnym, należy odpowiednio przygotować jego żłobki przez",
+[
+"wyłożenie izolacją żłobkową",
+"nałożenie oleju elektroizolacyjnego",
+"nałożenie lakieru elektroizolacyjnego",
+"zabezpieczenie klinami ochronnymi"
+],
+""
+],
+[
+"W jakiej z podanych sytuacji poślizg silnika indukcyjnego przyjmie wartość ujemną?",
+[
+"Wirnik silnika osiągnie prędkość wyższą niż prędkość synchroniczna",
+"Silnik będzie zasilany prądem przeciwnym",
+"Silnik będzie pracował w stanie jałowym",
+"Podczas dostarczania energii silnikowy wirnik pozostanie w bezruchu"
+],
+""
+],
+[
+"Jakie z podanych powodów wpływa na wzrost iskrzenia na komutatorze w trakcie działania sprawnego silnika bocznikowego prądu stałego po wymianie szczotek?",
+[
+"Zbyt mała powierzchnia styku szczotek z komutatorem",
+"Zbyt duże wzbudzenie silnika",
+"Zbyt małe wzbudzenie silnika",
+"Zbyt duży nacisk szczotek na komutator"
+],
+""
+],
+[
+"Jakie czynności powinny być przeprowadzone po serwisie silnika elektrycznego?",
+[
+"Pomiar rezystancji izolacji i próbne uruchomienie",
+"Sprawdzenie układów sterowania i sygnalizacji",
+"Sprawdzenie układów rozruchowych i regulacyjnych",
+"Impregnację uzwojeń i wyważenie wirnika"
+],
+""
+],
+[
+"Która z wymienionych przyczyn może powodować nagłe rozbieganie się pracującego silnika szeregowego prądu stałego?",
+[
+"Zerwanie połączenia wału silnika z maszyną napędzaną",
+"Przerwa w obwodzie wzbudzenia",
+"Zwarcie międzyzwojowe w uzwojeniu twornika",
+"Uszkodzenie łożysk silnika"
+],
+""
+],
+[
+"Jakie z podanych usterek mogą powodować nadmierne wibracje w silniku indukcyjnym?",
+[
+"Skrzywienie wału, niewłaściwe wyważenie wirnika, zbyt duży luz na łożyskach",
+"Zbyt niskie napięcie, przerwa w jednej z faz, przeciążenie silnika",
+"Przerwa w uzwojeniu stojana, zatarcie łożysk, nadmierna rezystancja uzwojeń wirnika",
+"Zwarcie w uzwojeniu wirnika, zmieniona kolejność faz"
+],
+""
+],
+[
+"Która z wymienionych maszyn elektrycznych jest wykorzystywana jako czujnik prędkości obrotowej?",
+[
+"Prądnica tachometryczna.",
+"Silnik krokowy.",
+"Kompensator.",
+"Selsyn."
+],
+""
+],
+[
+"Pomiar impedancji pętli zwarciowych wykonuje się w przypadku",
+[
+"aktywnie działającej sieci, co uwzględnia impedancje transformatorów zasilających",
+"wyłączonej sieci, co uwzględnia impedancje transformatorów zasilających",
+"wyłączonej sieci, co nie uwzględnia impedancji transformatorów zasilających",
+"aktywnie działającej sieci, co nie uwzględnia impedancji transformatorów zasilających"
+],
+""
+],
+[
+"Jaką rolę odgrywa uzwojenie biegunów komutacyjnych w urządzeniach prądu stałego?",
+[
+"Kompensuje SEM samoindukcji, co eliminuje iskrzenie na szczotkach",
+"Generuje moment magnetyczny o stałym kierunku",
+"Tworzy nieruchome, stałe pole magnetyczne",
+"Redukuje hałas podczas eksploatacji"
+],
+""
+],
+[
+"Ile par biegunów magnetycznych posiada stojan silnika pierścieniowego synchronizowanego, jeżeli jego prędkość obrotowa przy zasilaniu napięciem o częstotliwości 50 Hz wynosi 1 000 obr./min?",
+[
+"3 pary.",
+"1 parę.",
+"2 pary.",
+"4 pary."
+],
+""
+],
+[
+"W jakiej jednostce miary określa się moment obrotowy, który należy zastosować przy dokręcaniu śrub w urządzeniach elektrycznych?",
+[
+"Nˑm",
+"kgˑm2",
+"Pa",
+"kg"
+],
+""
+],
+[
+"W jakim układzie sieciowym punkt neutralny transformatora zasilającego sieć nie jest metalicznie połączony z ziemią?",
+[
+"IT",
+"TN-C",
+"TN-S",
+"TT"
+],
+""
+],
+[
+"Jakiej z wymienionych czynności nie przeprowadza się w trakcie oględzin urządzenia napędowego z silnikiem elektrycznym podczas pracy?",
+[
+"Sprawdzenia szczotek i szczotkotrzymaczy",
+"Kontroli stanu osłon elementów wirujących",
+"Sprawdzenia działania systemów chłodzenia",
+"Oceny stanu przewodów ochronnych oraz ich podłączenia"
+],
+""
+],
+[
+"Pomiar rezystancji uzwojenia silnika elektrycznego przy użyciu omomierza wykazał wartość ∞ Ω. Co oznacza ten wynik dla uzwojenia silnika?",
+[
+"jest uszkodzone.",
+"działa prawidłowo.",
+"występuje zwarcie między zwojami.",
+"izolacja jest uszkodzona."
+],
+""
+],
+[
+"Na które końce uzwojenia pracującego silnika prądu stałego doprowadza się napięcie elektryczne za pomocą szczotek?",
+[
+"Twornika",
+"Kompensacyjnego",
+"Wzbudzenia",
+"Komutacyjnego"
+],
+""
+],
+[
+"Do której z wymienionych grup urządzeń elektrycznych zalicza się przekładniki pomiarowe?",
+[
+"Do transformatorów",
+"Do wzmacniaczy maszynowych",
+"Do prądnic tachometrycznych",
+"Do indukcyjnych sprzęgieł dwukierunkowych"
+],
+""
+],
+[
+"Po zmianie podłączenia do budynku zauważono, że trójfazowy silnik napędzający hydrofor kręci się w przeciwną stronę niż przed wymianą podłączenia. Co jest przyczyną takiego działania silnika?",
+[
+"zamiana dwóch faz miejscami",
+"brak podłączenia dwóch faz",
+"brak podłączenia jednej fazy",
+"zamiana jednej fazy z przewodem neutralnym"
+],
+""
+],
+[
+"Który z wymienionych jest silnikiem elektrycznym prądu stałego?",
+[
+"Obcowzbudny.",
+"Klatkowy.",
+"Repulsyjny.",
+"Pierścieniowy."
+],
+""
+],
+[
+"Który z podanych silników elektrycznych ma najbardziej sztywną charakterystykę mechaniczną n = f(M) w trybie pracy stabilnej?",
+[
+"Synchroniczny",
+"Szeregowy prądu stałego",
+"Asynchroniczny klatkowy",
+"Obcowzbudny prądu stałego"
+],
+""
+],
+[
+"Jaką z wymienionych czynności kontrolnych należy przeprowadzić po zainstalowaniu trójfazowego silnika elektrycznego?",
+[
+"Sprawdzenie kierunku obrotów wału silnika",
+"Mierzenie temperatury stojana",
+"Mierzenie prędkości obrotowej",
+"Weryfikacja symetrii napięcia zasilającego"
+],
+""
+]
+];
+var order=[],cur=0,ans=[],sel=-1,name="",running=false,exits=0,away=0,leftAt=0,lastOut=0,attempt=0,t0=0;
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+var $=function(id){return document.getElementById(id)};
+function norm(n){return n.trim().replace(/\s+/g," ")}
+var SES=(new URLSearchParams((location.hash||"").replace(/^#/,""))).get("s")||"";if(!/^[A-Za-z0-9]{6,24}$/.test(SES))SES="";
+var lastResult=null;
+$("conn").innerHTML=SES?'<span class="good">✓ Połączono z ekranem nauczyciela – wynik zostanie wysłany automatycznie.</span>':'<span class="wrong">Brak połączenia z nauczycielem – zeskanuj kod QR z ekranu w klasie.</span>';
+function send(o){if(!SES)return Promise.resolve(false);o.n=name;o.a=attempt;o.ts=Date.now();
+return fetch("https://ntfy.sh/e2-"+SES,{method:"POST",body:JSON.stringify(o)}).then(function(r){return r.ok}).catch(function(){return false})}
+function sendResult(){var el=$("sent");el.className="exits";el.textContent="Wysyłanie wyniku…";$("resend").classList.add("hidden");
+if(!SES){el.className="exits nz";el.textContent="Wynik nie został wysłany (brak połączenia z nauczycielem). Pokaż ten ekran nauczycielowi.";return}
+send(lastResult).then(function(ok){el.className="exits "+(ok?"z":"nz");el.textContent=ok?"✓ Wynik wysłany do nauczyciela":"Nie udało się wysłać wyniku. Sprawdź internet i spróbuj ponownie.";if(!ok)$("resend").classList.remove("hidden")})}
+$("resend").onclick=sendResult;
+$("name").addEventListener("input",function(){$("go").disabled=norm(this.value).length<3});
+$("go").onclick=start;$("again").onclick=function(){$("result").classList.add("hidden");$("start").classList.remove("hidden");window.scrollTo(0,0)};
+function start(){name=norm($("name").value);running=true;exits=0;away=0;leftAt=0;attempt++;t0=Date.now();order=shuffle(Q.map(function(q,i){return{q:i,o:shuffle([0,1,2,3])}}));cur=0;ans=[];
+$("start").classList.add("hidden");$("quiz").classList.remove("hidden");send({t:"start"});show()}
+function show(){var it=order[cur],q=Q[it.q];sel=-1;$("next").disabled=true;
+$("next").textContent=cur==order.length-1?"Zakończ test":"Dalej";
+$("count").textContent="Pytanie "+(cur+1)+" z "+order.length;$("bar").style.width=(cur/order.length*100)+"%";
+$("qtext").textContent=q[0];var box=$("opts");box.innerHTML="";
+it.o.forEach(function(oi,k){var b=document.createElement("button");b.className="opt";b.textContent=String.fromCharCode(65+k)+". "+q[1][oi];
+b.onclick=function(){sel=oi;[].forEach.call(box.children,function(c){c.classList.remove("sel")});b.classList.add("sel");$("next").disabled=false};box.appendChild(b)});window.scrollTo(0,0)}
+$("next").onclick=function(){ans.push(sel);cur++;if(cur<order.length)show();else finish()};
+function finish(){running=false;$("warn").classList.add("hidden");var ok=0,html="";order.forEach(function(it,i){var q=Q[it.q],g=ans[i]===0;if(g)ok++;
+html+='<div class="item"><b>'+(i+1)+". "+q[0]+'</b>'+(g?'<span class="good">Dobrze:</span> '+q[1][0]:'<span class="wrong">Twoja odpowiedź:</span> '+q[1][ans[i]]+'<br><span class="good">Poprawna:</span> '+q[1][0])+(q[2]?'<div class="expl">'+q[2]+'</div>':'')+'</div>'});
+var n=order.length,p=Math.round(ok/n*100),gr=p>=91?"bardzo dobry (5)":p>=75?"dobry (4)":p>=50?"dostateczny (3)":p>=30?"dopuszczający (2)":"niedostateczny (1)";
+var d=new Date();$("who").textContent=name+" · "+d.toLocaleDateString("pl-PL")+" "+d.toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"});
+$("score").textContent=ok+" / "+n+" ("+p+"%)";$("grade").textContent="Ocena: "+gr;$("review").innerHTML="<h3>Twoje odpowiedzi</h3>"+html;
+var ex=$("exits");ex.className="exits "+(exits?"nz":"z");ex.textContent=exits?"Wyjścia z testu: "+exits+" (łącznie poza testem: "+Math.round(away/1000)+" s)":"Wyjścia z testu: 0";
+var mins=Math.floor((Date.now()-t0)/60000),secs=Math.round((Date.now()-t0)/1000)%60;$("extra").textContent="Podejście nr "+attempt+" · czas rozwiązywania: "+mins+" min "+secs+" s";
+var wrong=[];order.forEach(function(it,i){if(ans[i]!==0)wrong.push(it.q+1)});
+lastResult={t:"end",ok:ok,of:n,p:p,g:gr,e:exits,aw:Math.round(away/1000),d:Math.round((Date.now()-t0)/1000),w:wrong};sendResult();
+$("quiz").classList.add("hidden");$("result").classList.remove("hidden");window.scrollTo(0,0)}
+function out(){if(!running||leftAt)return;var n=Date.now();if(n-lastOut<1500)return;lastOut=n;leftAt=n;exits++;send({t:"exit",e:exits})}
+function back(){if(!running||!leftAt)return;away+=Date.now()-leftAt;leftAt=0;var w=$("warn");w.textContent="Wykryto wyjście z testu ("+exits+"). Zostanie to pokazane w wyniku.";w.classList.remove("hidden");clearTimeout(w._t);w._t=setTimeout(function(){w.classList.add("hidden")},4000)}
+document.addEventListener("visibilitychange",function(){if(document.hidden)out();else back()});
+window.addEventListener("blur",out);window.addEventListener("focus",back);
+window.addEventListener("pagehide",out);
+window.addEventListener("beforeunload",function(e){if(running){e.preventDefault();e.returnValue=""}});
+</script>
+</body>
+</html>
